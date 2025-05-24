@@ -278,15 +278,15 @@
             return `${h}h ${m}m ${s}s`;
         }
 
-        // Calculate start angle based on shift start time
+        // Calculate start angle based on shift start time (12-hour clock)
         function getStartAngle() {
             const time = shiftStartTimeInput.value; // e.g., "08:00"
-            if (!time) return -Math.PI / 2; // Default to 12 o'clock if invalid
+            if (!time) return -Math.PI / 2; // Default to 12 o'clock
             const [hours, minutes] = time.split(':').map(Number);
-            const totalHours = hours + minutes / 60; // Convert to decimal hours
-            const fractionOfDay = totalHours / 24; // Proportion of 24-hour day
-            // Map to radians: 0h = -90°, 24h = -90° + 2π
-            return -Math.PI / 2 + fractionOfDay * 2 * Math.PI;
+            const hoursMod12 = hours % 12; // e.g., 14:00 → 2 PM
+            const totalHours = hoursMod12 + minutes / 60; // e.g., 08:30 → 8.5
+            const degrees = totalHours * 30; // 360° / 12 hours = 30° per hour
+            return (degrees - 90) * Math.PI / 180; // Convert to radians, offset from 12 o'clock
         }
 
         // Draw analog clock face (no arcs unless started)
@@ -294,7 +294,7 @@
             const centerX = clockCanvas.width / 2;
             const centerY = clockCanvas.height / 2;
             const radius = Math.min(centerX, centerY) * 0.8;
-            const shiftLength = Math.max(parseFloat(shiftLengthInput.value) || 8, 0.1); // Ensure positive
+            const shiftLength = Math.max(parseFloat(shiftLengthInput.value) || 8, 0.1);
 
             // Clear canvas
             ctx.clearRect(0, 0, clockCanvas.width, clockCanvas.height);
@@ -338,14 +338,14 @@
                 categories.forEach((category, index) => {
                     const hours = category.hours;
                     if (hours <= 0) return;
-                    const proportion = hours / shiftLength; // Scale to shiftLength
+                    const proportion = hours / shiftLength;
                     const arcAngle = proportion * 2 * Math.PI;
                     const endAngle = startAngle + arcAngle;
 
                     // Draw arc with distinct color
                     ctx.beginPath();
                     ctx.arc(centerX, centerY, radius * 0.5, startAngle, endAngle);
-                    ctx.strokeStyle = colors[index % colors.length]; // Cycle through colors
+                    ctx.strokeStyle = colors[index % colors.length];
                     ctx.lineWidth = 10;
                     ctx.stroke();
 
